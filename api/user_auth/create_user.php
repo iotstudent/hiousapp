@@ -7,6 +7,8 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Mehtods:POST');
 header('Access-Control-Allow-Headers:Access-Control-Allow-Headers,application/json,Access-Control-Allow-Methods,Content-Type,Authorization,X-Requested-with');
 
+require "../../vendor/autoload.php";
+include_once '../../config/sm.php';
 // include DB class and Post model
 include_once '../../config/Database.php';
 include_once '../../models/Users.php';
@@ -40,11 +42,19 @@ if(!$emailExist){
             $user->create()
         ){
         
+              // generate verification code 
+              $code = $user->randString(5);
+
+              //insert into db
+              $user->insertWithMail('verify_code',$code,$user->email);
+  
+              //send verification mail
+              sendVerificationEmail($user->email,$code);
             // set response code
             http_response_code(200);
         
             // display message: user was created
-            echo json_encode(array("message" => "User was created."));
+            echo json_encode(array("message" => "Account Created Successfully and Verifcation Code Sent To Mail."));
         }
         
         // message if unable to create user

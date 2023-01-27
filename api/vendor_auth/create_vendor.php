@@ -9,6 +9,9 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Mehtods:POST');
 header('Access-Control-Allow-Headers:Access-Control-Allow-Headers,application/json,Access-Control-Allow-Methods,Content-Type,Authorization,X-Requested-with');
 
+include_once '../../config/sm.php';
+require "../../vendor/autoload.php";
+
 // include DB class and Post model
 include_once '../../config/Database.php';
 include_once '../../models/Vendors.php';
@@ -42,11 +45,20 @@ if(!$emailExist){
             $vendor->create()
         ){
         
-            // set response code
-            http_response_code(200);
-        
-            // display message: vendor was created
-            echo json_encode(array("message" => "Vendor was created."));
+              // generate verification code 
+              $code = $vendor->randString(5);
+
+              //insert into db
+              $vendor->insertWithMail('verify_code',$code,$vendor->email);
+  
+              //send verification mail
+              sendVerificationEmail($vendor->email,$code);
+
+               // set response code
+                http_response_code(200);
+            
+                // display message: vendor was created
+                echo json_encode(array("message" => "Account Created Successfully and Verifcation Code Sent To Mail."));
         }
         
         // message if unable to create vendor

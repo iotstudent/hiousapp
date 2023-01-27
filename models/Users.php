@@ -17,13 +17,41 @@ public $email;
 public $gender;
 public $profile;
 public $ref_code;
+public $verify_code;
 public $wallet;
+public $search;
+public $searchname;
 
 
     //construct with DB
 public function __construct($db){
 
     $this->conn = $db;
+}
+
+// function insert with mail
+
+public function insertWithMail($field,$value,$email){
+
+    // insert query
+    $query = " UPDATE " . $this->table. "
+    SET
+        ".$field ." = :field   
+    WHERE email = :email ";
+
+// prepare the query
+$stmt = $this->conn->prepare($query);
+// bind the values
+$stmt->bindParam(':field', $value);
+$stmt->bindParam(':email', $email);
+
+if($stmt->execute()){
+return true;
+}
+
+print($stmt->error);
+return false;
+
 }
 
 // function insert
@@ -165,6 +193,38 @@ public function getUserId($ref_code){
 }
 
 
+
+public function getUserIdVer($verify_code){
+ 
+    // query to check if email exists
+    $query = "SELECT id
+            FROM " . $this->table . "
+            WHERE verify_code = ?
+            LIMIT 0,1";
+ 
+    // prepare the query
+    $stmt = $this->conn->prepare( $query );
+ 
+    // sanitize
+    $this->id=htmlspecialchars(strip_tags($verify_code));
+ 
+    // bind given email value
+    $stmt->bindParam(1, $verify_code);
+ 
+    // execute the query
+   
+   if( $stmt->execute()){
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        // assign values to object properties
+        $this->id = $row['id'];
+    return $this->id;
+   }
+ 
+    // return false if email does not exist in the database
+    return false;
+}
+
+
 public function getUserDetails($id){
  
     // query to check if email exists
@@ -286,6 +346,39 @@ public function updatePassword(){
     }
  
     return false;
+}
+
+public function randString($length) {
+    $char = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    $char = str_shuffle($char);
+    for($i = 0, $rand = '', $l = strlen($char) - 1; $i < $length; $i ++) {
+        $rand .= $char[mt_rand(0, $l)];
+    }
+    return $rand;
+}
+
+
+
+public function searchForVendor($search) {
+
+    // query to check if email exists
+    $query = "SELECT product.vendor_id,vendors.name,vendors.location,vendors.pic_1 FROM product JOIN vendors ON vendors.id = product.vendor_id WHERE product_name = :search";
+ 
+    // prepare the query
+    $stmt = $this->conn->prepare( $query );
+ 
+    // sanitize
+    $search=htmlspecialchars(strip_tags($search));
+ 
+    // bind given email value
+    $stmt->bindParam(":search", $search);
+ 
+    // execute the query
+   if( $stmt->execute()){        
+        return $stmt;
+   }
+        return false;
+
 }
 
 }

@@ -232,7 +232,6 @@ public function getRiderIdWithRef($ref_code){
 
 
 
-
 // update a user record
 public function update(){
  

@@ -15,17 +15,17 @@ use \Firebase\JWT\Key;
 
 // include DB class and Post model
 include_once '../../config/Database.php';
-include_once '../../models/Vendors.php';
+include_once '../../models/Product.php';
 
 //instantiate db
 $database = new Database();
 $db = $database->connect();
 
 //instantiate new vendor
-$vendor = new vendor($db);
+$product = new product($db);
 
 // get jwt
-$jwt =$_POST['jwt'];
+$id =$_POST['product_id'];
 
 //get file content 
 
@@ -34,16 +34,12 @@ $tempPath  =  $_FILES['image']['tmp_name'];
 $fileSize  =  $_FILES['image']['size'];
 
 
-if($jwt){	
+if($id){	
 
 		 // if decode succeed, show vendor details
 		try {
  
-			// decode jw
-			$decoded = JWT::decode($jwt,new key ($key,'HS256'));
-	
-			// set vendor property values here
-			$vendor->id = $decoded->data->id;
+		
 
 			if(empty($fileName))
 			{
@@ -52,7 +48,7 @@ if($jwt){
 			}
 			else
 			{
-				$upload_path = 'pic1/'; // set upload folder path 
+				$upload_path = 'product_pic/'; // set upload folder path 
 				$base_path  = 'hiousapp.com/api/vendor_auth/' ; // set base path
 				
 				$fileExt = strtolower(pathinfo($fileName,PATHINFO_EXTENSION)); // get image extension
@@ -88,8 +84,9 @@ if($jwt){
 			// if no error caused, continue ....
 			if(!isset($errorMSG))
 			{
-				$vendor->insert("pic_1",$base_path . $upload_path . $fileName);
-				echo json_encode(array("message" => "Image Uploaded Successfully","status" => true));	
+				$product->product_pic = $base_path . $upload_path . $fileName;
+				$product->create();
+				echo json_encode(array("message" => "Product Created Successfully","status" => true));	
 			}
 
 		}catch (Exception $e){
